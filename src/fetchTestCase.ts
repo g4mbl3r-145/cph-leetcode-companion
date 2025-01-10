@@ -42,48 +42,28 @@ export const getTestCases = async (url: string): Promise<void> => {
 
     let outputMatch: RegExpExecArray | null;
     while ((outputMatch = outputRegex.exec(content)) !== null) {
-      outputs.push(cleanInput(outputMatch[1].trim()));
+      outputs.push(cleanInput(outputMatch[1].trim()));  // Apply cleanInput for output as well
     }
 
-    const problemNameMatch = url.match(/leetcode\.com\/problems\/([a-zA-Z0-9-]+)/);
-    if (!problemNameMatch) {
-      vscode.window.showErrorMessage("Unable to extract problem name from URL");
-      console.log("Invalid URL format");
-      return;
-    }
-    const problemName = problemNameMatch[1];
-    console.log("Extracted problem name:", problemName);
-
+    // Check if a workspace folder is open
     const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!workspacePath) {
       vscode.window.showErrorMessage("No workspace folder found. Please open a folder in VS Code.");
-      console.log("No workspace folder");
       return;
     }
 
-    const inputsFilePath = path.join(workspacePath, `inputs-${problemName}.txt`);
-    const outputsFilePath = path.join(workspacePath, `outputs-${problemName}.txt`);
+    // Define file paths for inputs.txt and outputs.txt in the workspace folder
+    const inputsFilePath = path.join(workspacePath, 'inputs.txt');
+    const outputsFilePath = path.join(workspacePath, 'outputs.txt');
 
-    const inputsFileExists = await fileExists(inputsFilePath);
-    const outputsFileExists = await fileExists(outputsFilePath);
+    // Write test cases to files without blank lines
+    await fs.writeFile(inputsFilePath, inputs.join('\n'), 'utf8'); // Continuous lines for inputs
+    console.log(`Inputs written to ${inputsFilePath}`);
 
-    if (inputsFileExists && outputsFileExists) {
-      vscode.window.showInformationMessage(`Test cases for \"${problemName}\" already exist.`);
-      console.log(`Test cases for \"${problemName}\" already exist: ${inputsFilePath}, ${outputsFilePath}`);
-      return;
-    }
+    await fs.writeFile(outputsFilePath, outputs.join('\n'), 'utf8'); // Continuous lines for outputs
+    console.log(`Outputs written to ${outputsFilePath}`);
 
-    if (!inputsFileExists) {
-      await fs.writeFile(inputsFilePath, inputs.join('\n'), 'utf8');
-      console.log(`Inputs written to ${inputsFilePath}`);
-    }
-
-    if (!outputsFileExists) {
-      await fs.writeFile(outputsFilePath, outputs.join('\n'), 'utf8');
-      console.log(`Outputs written to ${outputsFilePath}`);
-    }
-
-    vscode.window.showInformationMessage(`Test cases have been successfully written for \"${problemName}\" in the workspace folder.`);
+    vscode.window.showInformationMessage("Test cases have been successfully written to inputs.txt and outputs.txt in the workspace folder.");
   } catch (error: any) {
     console.error("Error during scraping:", error.message);
     vscode.window.showErrorMessage(`Error fetching test cases: ${error.message}`);
@@ -93,18 +73,9 @@ export const getTestCases = async (url: string): Promise<void> => {
   }
 };
 
-// Helper function to check if a file exists
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // Normalization function for cleaning inputs and outputs
 function cleanInput(rawData: string): string {
+  // Split the input at any variable name followed by `=` and filter out empty parts
   let cleanedArray = rawData
     .split(/\b[a-zA-Z_0-9]+\s*=\s*/) // Split at variable assignment
     .filter(part => part.trim() !== "") // Remove empty parts
@@ -115,6 +86,13 @@ function cleanInput(rawData: string): string {
       .replace(/,/g, ' ') // Replace commas with spaces
     );
 
+  // Join the cleaned array into a string with each part on a new line
   let cleaned = cleanedArray.join('\n');
   return cleaned;
-}
+}   
+
+
+
+
+
+
