@@ -1,71 +1,137 @@
-# cph-leetcode README
+# CPH-Leetcode Extension
 
-This is the README for your extension "cph-leetcode". After writing up a brief description, we recommend including the following sections.
-
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+A Visual Studio Code extension to enhance the competitive programming experience by integrating LeetCode problem test cases directly into your development workflow. This extension allows you to fetch test cases from a LeetCode problem URL and run your code against the fetched inputs to verify its correctness.
 
 ---
 
-## Following extension guidelines
+## Features
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+### 1. Fetch Test Cases from LeetCode
+- Enter a LeetCode problem URL, and the extension fetches input and output test cases for the problem.
+- If the test case files already exist, the extension will not recreate them. Instead, it will open the existing files for viewing.
+- The fetched or existing test cases are saved into files for easy access:
+  - **`<problem_name>_inputs.txt`**: Contains the input test cases.
+  - **`<problem_name>_outputs.txt`**: Contains the   expected output for the test cases.
+### Key Functions
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+1. [fileExists](./src/fetchTestCase.ts#L136)  
+   - This function handles fetching input and output test cases for a given LeetCode problem URL.
 
-## Working with Markdown
+2. [Run and Compare](./src/commands.ts#L45)  
+   - This function executes the user's code against the fetched test cases and compares the outputs.
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+### 2. Run and Compare
+- Test your solution directly from the editor by running it against the fetched inputs.
+- The extension compares your code's output with the expected output.
+- Displays detailed information about:
+  - Input
+  - Expected Output
+  - Your Output
+  - Test case pass/fail status
 
-## For more information
+### 3. Multi-Language Support
+- Supports popular competitive programming languages:
+  - C++
+  - Python
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+---
 
-**Enjoy!**
+## Installation
+
+1. Clone this repository or download the `.vsix` file.
+2. Install the extension:
+   - Open Visual Studio Code.
+   - Go to **Extensions** (`Ctrl+Shift+X`).
+   - Click on the three-dot menu and select **Install from VSIX**.
+   - Choose the `.vsix` file to install.
+3. Reload Visual Studio Code.
+
+---
+
+## Usage
+
+### Fetch Test Cases
+1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on macOS).
+2. Run the command: `CPH-Leetcode: Fetch Test Cases`.
+3. Enter the **LeetCode problem URL** (e.g., `https://leetcode.com/problems/two-sum`).
+4. Select your programming language (C++ or Python).
+5. The extension creates:
+   - A code template file (`<problem_name>.<extension>`).
+   - Two files: `<problem_name>_inputs.txt` and `<problem_name>_outputs.txt`.
+
+### Run and Compare
+1. Write your solution in the generated file.
+2. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on macOS).
+3. Run the command: `CPH-Leetcode: Run and Compare`.
+4. The extension will:
+   - Execute your code for each input test case.
+   - Compare your code's output with the expected output.
+   - Display the results in the output channel.
+
+---
+
+## Example Workflow
+
+1. **Fetch Test Cases**:
+   - URL: `https://leetcode.com/problems/two-sum`
+   - Files generated:
+     - `two-sum_inputs.txt`
+     - `two-sum_outputs.txt`
+     - `two-sum.cpp` (or `two-sum.py`)
+
+2. **Write Code**:
+   - Open the generated `two-sum.cpp` (or `two-sum.py`).
+   - Write your solution in the provided code template.
+
+3. **Run and Compare**:
+   - Run the `Run and Compare` command.
+   - See results in the output channel.
+
+---
+
+## Extension Commands
+
+| Command                       | Description                               |
+|-------------------------------|-------------------------------------------|
+| `CPH-Leetcode: Fetch Test Cases` | Fetch test cases from a LeetCode URL.     |
+| `CPH-Leetcode: Run and Compare`  | Run your solution and compare outputs.    |
+
+---
+
+## Requirements
+
+- **Programming Languages**:
+  - For Python: Ensure `python` is installed and available in your system's PATH.
+  - For C++: Ensure `g++` is installed and available in your system's PATH.
+- **Workspace**:
+  - Open a folder in Visual Studio Code before using the extension.
+
+---
+
+## Known Issues
+
+- Currently supports only C++ and Python.
+- Ensure internet connectivity to fetch test cases.
+
+---
+
+## Future Enhancements
+
+- Add support for more programming languages like Java, JavaScript, etc.
+- Automatically detect language from file extension.
+- Allow customization of test case storage paths.
+
+---
+
+## Contributing
+
+Feel free to open issues or contribute to the project by submitting pull requests. Contributions, bug reports, and feature requests are welcome!
+
+
+
+---
+
+## Author
+
+Developed with ❤️ by [Your Name].
