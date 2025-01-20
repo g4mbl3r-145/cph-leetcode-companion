@@ -1,17 +1,21 @@
 {
-  "name": "cph-leetcode",
-  "displayName": "cph-leetcode",
-  "description": "",
+  "name": "leetcode-companion",
+  "displayName": "leetcode-companion",
+  "description": "A VS Code extension for competitive programming with LeetCode.",
   "version": "0.0.1",
+  "publisher": "g4mbl3r",
+  "license":"LICENSE",
   "engines": {
     "vscode": "^1.96.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/g4mbl3r-145/cph-leetcode-companion.git"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:cph-leetcode.runAndCompare"
-  ],
+  "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -52,8 +56,8 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "chokidar": "^4.0.3",
-    "puppeteer": "^23.11.1",
-    "vscode": "^1.1.37"
+    "axios": "^1.7.9",
+    "fast-xml-parser": "^4.5.1",
+    "puppeteer": "^23.11.1"
   }
 }

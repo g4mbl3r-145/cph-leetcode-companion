@@ -101,7 +101,7 @@ export const getTestCases = async (url: string): Promise<void> => {
       );
       return;
     }
-    // console.log("New Input Array:", newInputArray[0]);
+   
     // Write inputs file if it doesn't exist
     if (!inputsFileExists) {
       await fs.writeFile(inputsFilePath, inputs.join('\n\n'), 'utf8');

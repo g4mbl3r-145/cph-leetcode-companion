@@ -4,7 +4,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { getTestCases } from './fetchTestCase';
 
-// import { inputFileName, outputFileName } from './fetchTestCase';
+
 
 const outputChannel = vscode.window.createOutputChannel(`RUN cph-Leetcode program`);
 
@@ -99,9 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
         try {
             
             const activeEditor = vscode.window.activeTextEditor;
-            // if(!activeEditor){
-            //     return ;
-            // }
+           
             
             if (!activeEditor) {
                 vscode.window.showErrorMessage("No active editor found.");
@@ -171,6 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
                             outputChannel.appendLine(userOutput);
                             outputChannel.appendLine('Expected Output:');
                             outputChannel.appendLine(normalizedExpectedOutput);
+                            outputChannel.appendLine('');
 
                             if (userOutput === normalizedExpectedOutput) {
                                 vscode.window.showInformationMessage(`Test case ${i + 1} passed.`);
@@ -187,17 +186,7 @@ export function activate(context: vscode.ExtensionContext) {
                     }
 
 
-            // const output = normalizeOutput(await runUserCode(filePath, inputFilePath, language));
-            // const expectedOutput = normalizeOutput(await fs.readFile(outputFilePath, 'utf8'));
-            
-            // if (output === expectedOutput) {
-            //     vscode.window.showInformationMessage("Test case passed!");
-            //     console.log("Test case passed");
-            // } else {
-                
-            //     vscode.window.showErrorMessage(`Test case failed.\nExpected:\n${expectedOutput}\n\nReceived:\n${output}`);
-            //     console.log(`Test case failed.\nExpected:\n${expectedOutput}\n\nReceived:\n${output}`);
-            // }
+
         } catch (error: any) {
             vscode.window.showErrorMessage(`Error: ${error.message}`);
             console.error("Error:", error.message);
