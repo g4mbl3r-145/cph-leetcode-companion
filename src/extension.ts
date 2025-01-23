@@ -116,6 +116,8 @@ export function activate(context: vscode.ExtensionContext) {
             const probname=path.parse(inputpath).name;
             const inputproblemname= path.join(inputdirpath, path.parse(inputpath).name+'_inputs.txt');
             const outputproblemname= path.join(outputdirpath, path.parse(outputpath).name+'_outputs.txt');
+            console.log("inputproblemName is : ",inputproblemname);
+
 
             const inputread=(await fs.readFile(inputproblemname,'utf8')).split('\n\n');
             const outputread=(await fs.readFile(outputproblemname,'utf8')).split('\n\n');
@@ -153,11 +155,11 @@ export function activate(context: vscode.ExtensionContext) {
 
                         
             
-                        if (!expectedOutput) {
-                            vscode.window.showWarningMessage(`Test case ${i + 1} does not have an expected output.`);
-                            console.log(`Test case ${i + 1} skipped due to missing expected output.`);
-                            continue;
-                        }
+                        // if (!expectedOutput) {
+                        //     vscode.window.showWarningMessage(`Test case ${i + 1} does not have an expected output.`);
+                        //     console.log(`Test case ${i + 1} skipped due to missing expected output.`);
+                        //     continue;
+                        // }
             
                         try {
                             const userOutput = normalizeOutput(await runUserCode(filePath, input, language));

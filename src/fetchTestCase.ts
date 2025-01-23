@@ -2,13 +2,18 @@ import puppeteer from 'puppeteer';
 import * as vscode from 'vscode';
 import fs from 'fs/promises';
 import path from 'path';
+import { stringify } from 'querystring';
 
 export let inputFileName: string | undefined;
 export let outputFileName: string | undefined;
 // export const newInputArray: string[] = [];
 // export const newOutputArray: string[] = [];
+let Brackets: number[][] = [];
+
 
 export const getTestCases = async (url: string): Promise<void> => {
+  Brackets = [];
+  const inputsBracketCounts: number[][] = [];
   console.log("Launching browser");
   const browser = await puppeteer.launch({
     headless: false,
@@ -43,20 +48,23 @@ export const getTestCases = async (url: string): Promise<void> => {
     
     let inputMatch: RegExpExecArray | null;
     while ((inputMatch = inputRegex.exec(content)) !== null) {
-      const cleanedInput = cleanInput(inputMatch[1].trim());
+      const cleanedInput = cleanInput(inputMatch[1].trim(), inputsBracketCounts);
       inputs.push(cleanedInput);
 
       // Split the cleaned input by two consecutive newlines and add each example to the array
       // newInputArray.push(...cleanedInput.split(/\n\n+/).map(part => part.trim()));
     }
 
+   for(let i=0;i<inputsBracketCounts.length;++i){
+    console.log("Bracket counts for each input:", inputsBracketCounts[i]);
 
+   }
 
-
+    console.log("Bracket counts for each input:", inputsBracketCounts);
 
     let outputMatch: RegExpExecArray | null;
     while ((outputMatch = outputRegex.exec(content)) !== null) {
-      const cleanedOutput=cleanInput(outputMatch[1].trim());
+      const cleanedOutput=cleanOutput(outputMatch[1].trim());
       outputs.push(cleanedOutput);
 
       // newOutputArray.push(...cleanedOutput.split(/\n\n+/).map(part => part.trim()));
@@ -64,7 +72,10 @@ export const getTestCases = async (url: string): Promise<void> => {
     }
 
 
-
+    for(let i=0;i<inputsBracketCounts.length;++i){
+      console.log("Bracket counts for each input:", inputsBracketCounts[i]);
+  
+     }
 
 
     const problemNameMatch = url.match(/leetcode\.com\/problems\/([a-zA-Z0-9-]+)/);
@@ -101,14 +112,67 @@ export const getTestCases = async (url: string): Promise<void> => {
       );
       return;
     }
-   
+   const inputlength=inputs.length;
+   console.log("inputlength: ",inputlength);
     // Write inputs file if it doesn't exist
-    if (!inputsFileExists) {
-      await fs.writeFile(inputsFilePath, inputs.join('\n\n'), 'utf8');
+    
+    // Initialize Brackets array with the correct length
+    for (let i = 0; i < inputlength; i++) {
+      Brackets.push([]);
+    }
+    const final: string[] = [];
+
+
+    let r = 0;
+    for (let j = 0; j < inputsBracketCounts.length; j +=(inputsBracketCounts.length)/inputlength) {
+      for (let i = j; i < j + (inputsBracketCounts.length)/inputlength; ++i) {
+
+        if (!Brackets[r]) {
+          Brackets[r] = []; // Ensure Brackets[r] is initialized
+        }
+        if (inputsBracketCounts[i]) {
+          for (let k = 0; k < inputsBracketCounts[i].length; ++k) {
+            Brackets[r].push(inputsBracketCounts[i][k]);
+          }
+        }
+      }
+
+      // Only push non-empty arrays
+      if (Brackets[r].length > 0) {
+        ++r;
+      } else {
+        Brackets.pop();
+      }
+    }
+    
+    for(let i=0;i<Brackets.length;++i){
+      let s: string = "" ;
+      for(let j=0;j<Brackets[i].length;++j){
+              let ck = (Brackets[i][j]).toString();
+              s+=ck;
+              s+=" ";
+      }
+      if (s) {
+        s+="\n";
+      }
+      s+=inputs[i];
+      final.push(s);
+    }
+
+
+    console.log("Brackets",Brackets);
+      await fs.writeFile(inputsFilePath, final.join('\n\n'), 'utf8');
+      
+      // const inputlength=((await fs.readFile(inputsFilePath,'utf8')).split('\n\n')).length;
+      // for(let i=0;i<inputlength;++i){
+
+      // }
+
+      
       console.log(`Inputs written to ${inputsFilePath}`);
       const inputsDoc = await vscode.workspace.openTextDocument(inputsFilePath);
       await vscode.window.showTextDocument(inputsDoc);
-    }
+    
 
     // Write outputs file if it doesn't exist
     if (!outputsFileExists) {
@@ -145,18 +209,104 @@ async function fileExists(filePath: string): Promise<boolean> {
 /**
  * Clean and normalize input/output strings.
  */
-function cleanInput(rawData: string): string {
+
+function cleanInput(rawData: string, inputsBracketCounts: number[][]): string {
   // Split the input at any variable name followed by = and filter out empty parts
+  let vectorCount = 0; // Counter for vectors
+  let matrixCount = 0; // Counter for matrices
   let cleaned = rawData
     .split(/\b[a-zA-Z_0-9]+\s*=\s*/) // Split at variable assignment
     .filter(part => part.trim() !== "") // Remove empty parts
-    .map(part => part.trim()) // Trim each part
-    .map(part => part
-      .replace(/"/g, '') // Remove double quotes
-      .replace(/[\[\]]/g, '') // Remove brackets
-      .replace(/,/g, ' ') // Replace commas with spaces
-    ).join('\n');
+    .map(part => {
+      part = part.trim();
 
+      // Calculate row and column counts for this part
+      // calculateRowColumnCounts(part);
+
+      if (/\],\[/g.test(part)) {
+        // It's a matrix if ],[ is found
+        matrixCount++;
+        console.log("Matrix detected:", part);
+        calculateRowColumnCounts(part, true, inputsBracketCounts);
+
+        // Replace ],[ with newlines for better readability
+        part = part.replace(/\],\[/g, '\n');
+      } else if (/[\[\]]/g.test(part)) {
+        // It's a vector if no nested structure is found
+        vectorCount++;
+        console.log("Vector detected:", part);
+        calculateRowColumnCounts(part, false, inputsBracketCounts);
+
+      }
+      return part
+      .replace(/\],\[/g, '\n') // Replace ],[ with a newline
+      .replace(/"/g, '') // Remove double quotes
+        .replace(/[\[\]]/g, '') // Remove brackets
+        .replace(/,/g, ' '); // Replace commas with spaces
+    })
+    .join('\n');
+
+    console.log("Count:", matrixCount, vectorCount);
   return cleaned;
+}
+
+function cleanOutput(rawData: string): string {
+  // Split the input at any variable name followed by = and filter out empty parts
+  let vectorCount = 0; // Counter for vectors
+  let matrixCount = 0; // Counter for matrices
+  let cleaned = rawData
+    .split(/\b[a-zA-Z_0-9]+\s*=\s*/) // Split at variable assignment
+    .filter(part => part.trim() !== "") // Remove empty parts
+    .map(part => {
+      part = part.trim();
+      return part
+      .replace(/\],\[/g, '\n') // Replace ],[ with a newline
+      .replace(/"/g, '') // Remove double quotes
+        .replace(/[\[\]]/g, '') // Remove brackets
+        .replace(/,/g, ' '); // Replace commas with spaces
+    })
+    .join('\n');
+
+    console.log("Count:", matrixCount, vectorCount);
+  return cleaned;
+}
+
+
+/**
+ * Function to calculate and store the number of rows and columns
+ * for each example input in a 2D array format.
+ */
+function calculateRowColumnCounts(exampleData: string, isMatrix: boolean, inputsBracketCounts: number[][]): void {
+  // Extract the main array structure using a regex
+  const arrayDataMatch = exampleData.match(/\[.*\]/s); // Matches everything inside the outermost brackets
+  if (!arrayDataMatch) {
+    // inputsBracketCounts.push([0, 0]); // Push [0, 0] if no valid array structure found
+    return;
+  }
+
+  const arrayData = arrayDataMatch[0];
+  
+
+  // Split into rows by matching inner arrays
+  const rows = arrayData.match(/\[.*?\]/g) || [];
+  const rowCount = rows.length;
+console.log(rows);
+  // Determine the column count for each row (assuming uniform structure)
+  let columnCount = 0;
+  if (rowCount === 1 && rows[0] === '[]') {
+    // Handle the case where it's a single empty row `[]`
+    columnCount = 0;
+  } else if (rows.length > 0) {
+    // Determine the column count for the first row (assuming uniform structure)
+    columnCount = rows[0] ? (rows[0].match(/,/g) || []).length + 1 : 0;
+  }
+  console.log(columnCount);
+  
+  if (isMatrix){
+    inputsBracketCounts.push([rowCount, columnCount]);
+  } else {
+    inputsBracketCounts.push([columnCount]);
+  }
+
 }
 
