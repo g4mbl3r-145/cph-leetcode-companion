@@ -2,7 +2,7 @@
   "name": "leetcode-companion",
   "displayName": "leetcode-companion",
   "description": "A VS Code extension for competitive programming with LeetCode.",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "publisher": "g4mbl3r",
   "license":"LICENSE",
   "engines": {

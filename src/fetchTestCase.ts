@@ -18,6 +18,7 @@ export const getTestCases = async (url: string): Promise<void> => {
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: null,
+    executablePath:''
   });
 
   const page = await browser.newPage();
@@ -37,10 +38,18 @@ export const getTestCases = async (url: string): Promise<void> => {
       return (element as HTMLElement)?.innerText || "Element not found";
     });
 
+
+
+
+    
     console.log("Content of .elfjS:", content);
+
+
 
     const inputRegex = /Input:\s*(.*?)(?=Output:|$)/gs;
     const outputRegex = /Output:\s*(.*?)(?=Explanation:|Example|Constraints:|$)/gs;
+
+
 
     const inputs: string[] = [];
     const outputs: string[] = [];
